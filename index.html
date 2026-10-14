@@ -7,6 +7,38 @@
 </style>
 <style>
 .flow-panel{margin:12px -2px 0;padding:12px;border:1px solid #e2ebf7;border-radius:11px;background:#fff}.flow-title{display:flex;align-items:center;gap:6px;color:#17325e;font-size:14px;font-weight:600;margin-bottom:9px}.flow-title i{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#41bf68;color:#fff;font-style:normal;font-size:12px}.flow-hint{margin:0 0 8px;color:#7c8eaa;font-size:12px;line-height:1.6}.mindmap-preview{position:relative;min-height:130px;margin:8px 0;padding:13px;border:1px solid #e4edf8;border-radius:9px;background:linear-gradient(135deg,#f8fbff,#edf5ff);overflow:hidden}.mindmap-preview:before,.mindmap-preview:after{content:"";position:absolute;left:50%;top:50%;width:58px;height:1px;background:#75b8ff;transform-origin:left center}.mindmap-preview:before{transform:rotate(25deg)}.mindmap-preview:after{transform:rotate(-25deg)}.mindmap-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:8px 10px;border-radius:6px;background:#1681ef;color:#fff;font-size:11px;z-index:1}.mindmap-node{position:absolute;padding:5px 7px;border-radius:5px;background:#dcebff;color:#2670b7;font-size:10px;box-shadow:0 1px 3px #2779c418}.mindmap-node.one{left:9px;top:22px}.mindmap-node.two{right:9px;top:22px}.mindmap-node.three{left:10px;bottom:21px}.mindmap-node.four{right:8px;bottom:21px}.preview-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}.preview-actions button{border:1px solid #e1eaf5;border-radius:7px;background:#fff;color:#16447c;padding:8px;font-size:12px}.ppt-settings{margin-top:12px;padding-top:11px;border-top:1px solid #e3ebf5}.ppt-settings h4{margin:0 0 9px;font-size:14px}.ppt-option{display:flex;align-items:flex-start;gap:9px;padding:8px 0}.ppt-option input{width:19px;height:19px;accent-color:#087aff;margin:0}.ppt-option strong{font-size:13px;color:#17325e}.ppt-option small{display:block;color:#8494aa;font-size:11px;line-height:1.5;margin-top:3px}.start-ppt{width:100%;margin-top:7px;border:0;border-radius:7px;background:#087aff;color:#fff;padding:10px;font-size:13px}.generation-status{display:flex;align-items:center;gap:7px;margin:10px 0;color:#687e9c;font-size:12px}.spinner{width:14px;height:14px;border:2px solid #cfe2fa;border-top-color:#087aff;border-radius:50%;animation:spin .7s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.ppt-card{display:flex;align-items:center;gap:9px;margin-top:11px;padding:11px;border:1px solid #e2ebf7;border-radius:9px;background:linear-gradient(135deg,#f8fbff,#edf5ff)}.ppt-icon{display:grid;place-items:center;width:38px;height:42px;border-radius:7px;background:#fff;color:#ef795e;font-weight:700;font-size:11px}.ppt-info{min-width:0;flex:1}.ppt-name{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600}.ppt-status{display:block;margin-top:3px;color:#8494aa;font-size:11px}.ppt-status i{display:inline-grid;place-items:center;width:14px;height:14px;border-radius:50%;background:#43c56b;color:#fff;font-style:normal}.ppt-download{border:0;border-radius:16px;background:#087aff;color:#fff;padding:8px 10px;font-size:11px;white-space:nowrap}
+</style>
+<style>
+@media (min-width:768px){
+  body{background:#edf3fa}
+  .phone{max-width:1180px;min-height:100vh;margin:0 auto;background:linear-gradient(140deg,#fff,#f5f8fc);box-shadow:0 0 35px #31557c12;padding-bottom:96px}
+  .status{padding:0 32px;height:32px}
+  .top{height:58px;padding:0 28px}
+  .top h1{font-size:20px}
+  .nav{height:66px;padding:0 28px}
+  .brand{font-size:20px}
+  .content{max-width:1100px;margin:0 auto;padding:24px 34px}
+  .hero{padding:28px 34px 24px;border-radius:18px}
+  .hero h2{font-size:34px;white-space:normal}
+  .subtitle{font-size:21px}
+  .hero p{max-width:920px;font-size:15px}
+  .notice{max-width:920px;font-size:13px;padding:13px 16px}
+  .questions h2{font-size:22px;margin-top:25px}
+  #questionList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .question{min-height:58px;margin:0;padding:9px 17px}
+  .question span:nth-child(2){font-size:15px}
+  .messages{max-width:960px;margin:0 auto;padding:20px 34px}
+  .bubble{font-size:15px;padding:17px 20px}
+  .answer h3{font-size:19px}.answer h4{font-size:16px}
+  .reference-card,.flow-panel{max-width:900px;margin-left:auto;margin-right:auto}
+  .actions{max-width:900px;margin-left:auto;margin-right:auto}
+  .composer{width:min(calc(100% - 68px),960px);border-radius:16px;bottom:20px;padding:10px 14px;box-shadow:0 8px 25px #24476d18}
+  .composer input{font-size:15px;height:32px}
+  .composer button{font-size:19px}
+  .toast{bottom:105px}
+}
+@media (min-width:1200px){.phone{border-left:1px solid #e4ebf5;border-right:1px solid #e4ebf5}.hero{padding-left:42px;padding-right:42px}.content{padding-left:40px;padding-right:40px}}
+@media (max-width:767px){.phone{width:100%;overflow-x:hidden}}
 </style></head>
 <body><div class="phone"><div class="status"><span>9:41</span><span class="icons">▂▃▅▇ ◉ ▰</span></div><header class="top"><button id="back">‹</button><h1>GK充电宝</h1><span class="capsule">•••　−　⦿</span></header><nav class="nav"><button>☰</button><div class="brand">🌈 GK充电宝</div><button class="more">•••</button></nav>
 <main class="content" id="home"><section class="hero"><div class="eyebrow">GK Biopharma</div><h2>你好，我是华领医药 <span>GK充电宝</span></h2><div class="subtitle">专注多格列艾汀的医学知识助手</div><div class="line"></div><p>基于公司内部资料，帮助你快速查询和理解多格列艾汀的相关医学信息，包括药物机制、临床证据、用法用量、安全性等内容。</p><div class="notice">ⓘ　<span>本回答基于公司内部资料及公开医学文献，仅供专业人士参考，不替代医生的专业判断。</span></div><div class="intro">GK充电宝的介绍<a href="#" id="intro">GK充电宝智能体介绍</a><a href="#" id="updates">GK充电宝 + V1.2更新内容</a></div></section><section class="questions"><h2>你可以这样问</h2><div id="questionList"></div></section></main><section class="messages" id="messages"></section>
