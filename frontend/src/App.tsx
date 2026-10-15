@@ -14,6 +14,25 @@ const summaryPpt = '/gk-glucose-homeostasis-summary-only.pptx'
 
 type OutputTab = 'mindmap' | 'ppt'
 
+function ChatBubbleIcon({ active = false }: { active?: boolean }) {
+  return (
+    <svg className={`chat-bubble-icon ${active ? 'active' : ''}`} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M20 11.8a8 8 0 0 1-8.2 8.1 8.7 8.7 0 0 1-3.6-.8L4 20l1.2-3.6A7.8 7.8 0 0 1 3.8 12c0-4.6 3.6-8 8.2-8a8 8 0 0 1 8 7.8Z" />
+      <circle cx="8.3" cy="12" r=".8" />
+      <circle cx="12" cy="12" r=".8" />
+      <circle cx="15.7" cy="12" r=".8" />
+    </svg>
+  )
+}
+
+function BroomIcon() {
+  return (
+    <svg className="broom-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M14 3v7M8 10h11l-1.3 3H6.7L8 10ZM7 13l-2 7h14l-2-7M9 16l-.4 2M13 16l-.4 2M17 16l-.4 2" />
+    </svg>
+  )
+}
+
 function MindmapPreview({ large = false }: { large?: boolean }) {
   return (
     <div className={`mindmap-preview ${large ? 'large' : ''}`}>
@@ -96,15 +115,26 @@ export default function App() {
     <div className="app-shell">
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="brand"><img className="brand-logo" src="./huaming-logo.png" alt="" /><span>GK充电宝</span></div>
-        <button className="new-chat" onClick={startNewChat} type="button">◉　新对话　＋</button>
-        <div className="history-item current">◉　新对话 <small>刚刚</small></div>
-        <div className="history-item">◌　为什么说葡萄糖激酶（GK）</div>
-        <div className="history-item">◌　什么是血糖稳态和血糖稳态系统</div>
+        <div className="sidebar-actions">
+          <button className="new-chat" onClick={startNewChat} type="button"><ChatBubbleIcon /><span>新对话</span><b>＋</b></button>
+          <button className="clear-history" onClick={startNewChat} type="button" aria-label="清理当前对话并新建对话" title="清理当前对话"><BroomIcon /></button>
+        </div>
+        <div className="history-list">
+          <button className="history-item current" onClick={startNewChat} type="button"><ChatBubbleIcon active /><span className="history-label">新对话</span><small>刚刚</small></button>
+          <button className="history-item" type="button"><ChatBubbleIcon /><span className="history-label">GK充电宝智能体…</span><small>09:48</small></button>
+          <button className="history-item" type="button"><ChatBubbleIcon /><span className="history-label">为什么说葡萄糖激酶…</span><small>昨天</small></button>
+          <button className="history-item" type="button"><ChatBubbleIcon /><span className="history-label">GK充电宝智能体…</span><small>昨天</small></button>
+          <button className="history-item" type="button"><ChatBubbleIcon /><span className="history-label">为什么说葡萄糖激酶…</span><small>昨天</small></button>
+          <button className="history-item" type="button"><ChatBubbleIcon /><span className="history-label">什么是血糖稳态…</span><small>昨天</small></button>
+          <button className="history-item" type="button"><ChatBubbleIcon /><span className="history-label">什么是血糖稳态…</span><small>昨天</small></button>
+          <button className="history-item" type="button"><ChatBubbleIcon /><span className="history-label">为什么说葡萄糖激酶…</span><small>昨天</small></button>
+          <button className="history-item" type="button"><ChatBubbleIcon /><span className="history-label">为什么说葡萄糖激酶…</span><small>10-13</small></button>
+        </div>
       </aside>
       {sidebarOpen && <button className="scrim" onClick={() => setSidebarOpen(false)} type="button" aria-label="关闭边栏" />}
 
       <main className="phone">
-        <nav className="nav"><button onClick={() => setSidebarOpen(true)} type="button" aria-label="打开边栏">☰</button><strong>GK充电宝</strong><button type="button">•••</button></nav>
+        <nav className="nav"><button onClick={() => setSidebarOpen(true)} type="button" aria-label="打开边栏">☰</button><button type="button">•••</button></nav>
         {!activeQuestion ? (
           <section className="home">
             <div className="hero"><small>GK Biopharma</small><h1>你好，我是华领医药 <em>GK充电宝</em></h1><p>专注多格列艾汀的医学知识助手</p><hr /><span>基于公司内部资料，帮助你快速查询和理解多格列艾汀的相关医学信息。</span></div>

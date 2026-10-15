@@ -49,3 +49,22 @@ button { cursor: pointer; }
 .mindmap-preview.large { min-height: min(58vh, 480px); }.mindmap-preview.large .mindmap-node { min-height: 48px; padding: 10px 16px; font-size: 16px; }.mindmap-preview.large .mindmap-center { min-height: 60px; padding: 14px 22px; font-size: 18px; }
 .composer .file-input { display: none; }.composer .attach-button { flex: none; padding: 4px; background: transparent; color: #667a99; font-size: 19px; }.selected-file { display: flex; max-width: 145px; align-items: center; gap: 5px; overflow: hidden; padding: 4px 7px; border-radius: 7px; background: #edf5ff; color: #45617f; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }.selected-file button { padding: 0 2px; background: transparent; color: #7184a0; }
 @media (max-width: 767px) { .generation-panel { padding: 12px; }.mindmap-preview { min-height: 150px; }.ppt-card { gap: 8px; padding: 9px; }.ppt-download { padding: 8px 9px; font-size: 11px; }.mindmap-modal-backdrop { padding: 12px; }.mindmap-modal { padding: 12px; }.mindmap-preview.large { min-height: 44vh; }.mindmap-preview.large .mindmap-node { padding: 7px; font-size: 12px; }.mindmap-preview.large .mindmap-center { padding: 10px; font-size: 14px; }.selected-file { max-width: 92px; } }
+
+.sidebar-actions { display: flex; align-items: center; gap: 10px; margin: 0 0 20px; }
+.sidebar-actions .new-chat { display: flex; min-width: 0; height: 50px; align-items: center; justify-content: center; gap: 9px; padding: 0 12px; border-radius: 25px; color: #1677ff; font-size: 16px; font-weight: 500; }
+.chat-bubble-icon { display: block; width: 20px; height: 20px; flex: none; overflow: visible; color: #46556d; }
+.chat-bubble-icon path { fill: #fff; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.chat-bubble-icon circle { fill: currentColor; stroke: none; }
+.chat-bubble-icon.active { color: #fff; }
+.chat-bubble-icon.active path { fill: #3b7cff; stroke: #3b7cff; }
+.sidebar-actions .new-chat .chat-bubble-icon { color: #1677ff; }
+.sidebar-actions .new-chat b { margin-left: 1px; font-size: 19px; font-weight: 400; line-height: 1; }
+.clear-history { display: grid; width: 50px; height: 50px; flex: none; place-items: center; border: 1px solid #d9e3f1; border-radius: 50%; background: #fff; color: #59677d; box-shadow: 0 1px 3px #23456d12; }
+.broom-icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.history-list { display: flex; flex-direction: column; gap: 7px; }
+.sidebar .history-item { display: flex; width: 100%; min-height: 58px; align-items: center; gap: 12px; margin: 0; padding: 9px 10px; border: 0; border-radius: 11px; background: transparent; color: #53627a; text-align: left; font-size: 14px; }
+.sidebar .history-item.current { background: #eef4ff; color: #1677ff; }
+.history-label { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar .history-item small { flex: none; margin-left: 4px; color: #8794a9; font-size: 12px; }
+.clear-history:focus-visible, .sidebar-actions .new-chat:focus-visible, .sidebar .history-item:focus-visible { outline: 2px solid #1677ff; outline-offset: 2px; }
+@media (max-width: 767px) { .sidebar-actions { gap: 9px; }.sidebar-actions .new-chat { height: 48px; font-size: 15px; }.clear-history { width: 48px; height: 48px; }.sidebar .history-item { min-height: 56px; } }
