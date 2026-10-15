@@ -95,7 +95,7 @@ export default function App() {
   return (
     <div className="app-shell">
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className="brand"><img className="brand-logo" src="/huaming-logo.png" alt="" /><span>GK充电宝</span></div>
+        <div className="brand"><img className="brand-logo" src="./huaming-logo.png" alt="" /><span>GK充电宝</span></div>
         <button className="new-chat" onClick={startNewChat} type="button">◉　新对话　＋</button>
         <div className="history-item current">◉　新对话 <small>刚刚</small></div>
         <div className="history-item">◌　为什么说葡萄糖激酶（GK）</div>
