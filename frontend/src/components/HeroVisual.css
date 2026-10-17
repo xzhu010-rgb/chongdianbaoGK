@@ -1,0 +1,11 @@
+.hero-visual {
+  position: static;
+  z-index: 1;
+  min-width: 0;
+  min-height: 370px;
+  isolation: isolate;
+}
+
+@media (max-width: 767px) {
+  .hero-visual { min-height: clamp(260px, 73vw, 330px); }
+}
