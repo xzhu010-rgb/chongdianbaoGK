@@ -26,7 +26,7 @@ import {
   SoundOutlined,
 } from '@ant-design/icons'
 import HeroVisual from './components/HeroVisual'
-import { sendChat } from './services/api'
+import { recommendFollowUpQuestions, sendChat } from './services/api'
 
 const questions = [
   '多格列艾汀对机体GK功能的促进如何？',
@@ -37,10 +37,60 @@ const questions = [
   '多格列艾汀在临床上还有其他获益？',
 ]
 
+const followUpQuestionBatches = {
+  gk: [
+    [
+      '血糖稳态系统的作用机制是什么？',
+      '与二甲双胍相比有什么优势？',
+      '有哪些血糖稳态相关的临床研究？',
+    ],
+    [
+      '多格列艾汀如何调节葡萄糖激酶？',
+      '血糖稳态调节和传统降糖机制有什么不同？',
+      '多格列艾汀在临床研究中有哪些治疗获益？',
+    ],
+  ],
+  cardiovascular: [
+    [
+      '多格列艾汀目前有哪些临床研究？',
+      '多格列艾汀的心血管安全性如何？',
+      '多格列艾汀与其他降糖药有什么区别？',
+    ],
+    [
+      '多格列艾汀的心血管结局证据到哪一步？',
+      '哪些患者需要重点评估心血管风险？',
+      '现有研究结论适用于哪些人群？',
+    ],
+  ],
+  general: [
+    [
+      '这个结论有哪些关键临床证据？',
+      '哪些患者更适合关注这个问题？',
+      '相关安全性信息有哪些？',
+    ],
+    [
+      '如何理解答案中的关键机制？',
+      '临床研究结果有哪些限制？',
+      '治疗过程中需要关注什么？',
+    ],
+  ],
+}
+
+function getFollowUpQuestionBatches(question: string) {
+  if (/CVOT|心血管|心脏|心血管安全/i.test(question)) return followUpQuestionBatches.cardiovascular
+  if (/GK|葡萄糖激酶|血糖稳态|机制/i.test(question)) return followUpQuestionBatches.gk
+  return followUpQuestionBatches.general
+}
+
 type HistoryItem = {
   key: string
   title: string
   time: string
+}
+
+type ConversationTurn = {
+  question: string
+  answer: string
 }
 
 function getHistoryTitle(value: string) {
@@ -243,18 +293,66 @@ export default function App() {
   const [selectedHistoryKeys, setSelectedHistoryKeys] = useState<string[]>([])
   const [activeQuestion, setActiveQuestion] = useState<string | null>(null)
   const [answer, setAnswer] = useState('')
+  const [conversationTurns, setConversationTurns] = useState<ConversationTurn[]>([])
   const [loading, setLoading] = useState(false)
   const [mindmapGenerated, setMindmapGenerated] = useState(false)
   const [mindmapDefinition, setMindmapDefinition] = useState('')
   const [mindmapSvg, setMindmapSvg] = useState('')
   const [mindmapRevision, setMindmapRevision] = useState(0)
   const [mindmapModalOpen, setMindmapModalOpen] = useState(false)
+  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([])
+  const [suggestionBatchIndex, setSuggestionBatchIndex] = useState(0)
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const questionInputRef = useRef<TextAreaRef>(null)
+  const answerGroupRef = useRef<HTMLDivElement>(null)
+  const suggestionRequestIdRef = useRef(0)
   const deletableHistoryItems = historyItems.filter((item) => item.key !== 'new')
   const visibleHistoryItems = historyItems.filter((item) => item.key !== 'new' || draftChatVisible)
+  const fallbackSuggestionBatches = getFollowUpQuestionBatches(`${activeQuestion ?? ''} ${answer}`)
+  const fallbackFollowUpQuestions = fallbackSuggestionBatches[suggestionBatchIndex % fallbackSuggestionBatches.length]
+  const visibleFollowUpQuestions = suggestionBatchIndex === 0 && suggestedQuestions.length > 0
+    ? suggestedQuestions
+    : fallbackFollowUpQuestions
 
-  const ask = async (value: string) => {
+  const requestSuggestedQuestions = async (
+    questionText: string,
+    answerText: string,
+    history: ConversationTurn[],
+    excludeQuestions: string[] = [],
+    rotateFallbackOnFailure = false,
+  ) => {
+    const requestId = ++suggestionRequestIdRef.current
+    setSuggestionsLoading(true)
+    try {
+      const recommendations = await recommendFollowUpQuestions({
+        question: questionText,
+        answer: answerText,
+        history,
+        excludeQuestions,
+      })
+      if (requestId !== suggestionRequestIdRef.current) return
+      if (recommendations.length === 3) {
+        setSuggestedQuestions(recommendations)
+        setSuggestionBatchIndex(0)
+      } else if (rotateFallbackOnFailure) {
+        setSuggestionBatchIndex((index) => index + 1)
+      }
+    } catch {
+      if (requestId === suggestionRequestIdRef.current && rotateFallbackOnFailure) {
+        setSuggestionBatchIndex((index) => index + 1)
+      }
+    } finally {
+      if (requestId === suggestionRequestIdRef.current) setSuggestionsLoading(false)
+    }
+  }
+
+  const ask = async (value: string, continueConversation = false) => {
+    const history = continueConversation && activeQuestion && answer
+      ? [...conversationTurns, { question: activeQuestion, answer }]
+      : conversationTurns
+
+    if (history !== conversationTurns) setConversationTurns(history)
     if (activeHistory === 'new') {
       const historyKey = `chat-${Date.now()}`
       const historyTitle = getHistoryTitle(value)
@@ -271,9 +369,14 @@ export default function App() {
     setMindmapDefinition('')
     setMindmapSvg('')
     setMindmapRevision(0)
+    setSuggestedQuestions([])
+    setSuggestionBatchIndex(0)
+    setSuggestionsLoading(false)
+    suggestionRequestIdRef.current += 1
     try {
-      const result = await sendChat({ question: value, model })
+      const result = await sendChat({ question: value, model, history })
       setAnswer(result.answer)
+      void requestSuggestedQuestions(value, result.answer, history)
     } catch (error) {
       setAnswer(error instanceof Error ? error.message : '请求失败，请稍后重试。')
     } finally {
@@ -286,6 +389,22 @@ export default function App() {
     setMindmapSvg('')
     setMindmapRevision((revision) => revision + 1)
     setMindmapGenerated(true)
+  }
+
+  const askFollowUpQuestion = (value: string) => {
+    setQuestion('')
+    void ask(value, true)
+    window.requestAnimationFrame(() => {
+      answerGroupRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }
+
+  const refreshFollowUpQuestions = () => {
+    if (!activeQuestion || !answer) {
+      setSuggestionBatchIndex((index) => index + 1)
+      return
+    }
+    void requestSuggestedQuestions(activeQuestion, answer, conversationTurns, visibleFollowUpQuestions, true)
   }
 
   const handleMindmapSvgReady = useCallback((svg: string) => {
@@ -323,28 +442,32 @@ export default function App() {
   }
 
   const renderAnswerFooter = () => (
-    <>
-      <div className="answer-mindmap">
-        {!mindmapGenerated ? (
-          <Button className="answer-mindmap-trigger" type="link" icon={<ApartmentOutlined />} onClick={openMindmap}>
-            生成思维导图
+    <section className={`mindmap-operation ${mindmapGenerated ? 'expanded' : ''}`} aria-label="思维导图操作区">
+      {!mindmapGenerated ? (
+        <>
+          <div className="mindmap-operation-copy">
+            <div className="mindmap-operation-title"><ApartmentOutlined /> 想更直观地理解这个答案？</div>
+            <p>将回答整理为思维导图，快速梳理核心知识与逻辑关系。</p>
+          </div>
+          <Button className="mindmap-operation-trigger" onClick={openMindmap}>
+            生成思维导图 <ArrowRightOutlined />
           </Button>
-        ) : (
-          <>
-            <div className="mindmap-result-heading"><span><CheckCircleFilled /> 思维导图</span></div>
-            <p className="flow-hint">已根据当前回答提取结构。</p>
-            <MindmapPreview key={mindmapRevision} definition={mindmapDefinition} onSvgReady={handleMindmapSvgReady} />
-            <div className="preview-actions">
-              <Button icon={<ReloadOutlined />} onClick={openMindmap}>重新生成</Button>
-              <Button icon={<EyeOutlined />} onClick={() => setMindmapModalOpen(true)}>查看大图</Button>
-            </div>
-            <div className="artifact-downloads">
-              <Button type="link" onClick={downloadMindmap} disabled={!mindmapSvg} icon={<DownloadOutlined />}>下载当前思维导图 SVG</Button>
-            </div>
-          </>
-        )}
-      </div>
-    </>
+        </>
+      ) : (
+        <>
+          <div className="mindmap-result-heading"><span><CheckCircleFilled /> 思维导图</span></div>
+          <p className="flow-hint">已根据当前回答提取结构。</p>
+          <MindmapPreview key={mindmapRevision} definition={mindmapDefinition} onSvgReady={handleMindmapSvgReady} />
+          <div className="preview-actions">
+            <Button icon={<ReloadOutlined />} onClick={openMindmap}>重新生成</Button>
+            <Button icon={<EyeOutlined />} onClick={() => setMindmapModalOpen(true)}>查看大图</Button>
+          </div>
+          <div className="artifact-downloads">
+            <Button type="link" onClick={downloadMindmap} disabled={!mindmapSvg} icon={<DownloadOutlined />}>下载当前思维导图 SVG</Button>
+          </div>
+        </>
+      )}
+    </section>
   )
 
   const startNewChat = () => {
@@ -355,10 +478,15 @@ export default function App() {
       : [{ key: 'new', title: '新对话', time: '刚刚' }, ...items])
     setActiveQuestion(null)
     setAnswer('')
+    setConversationTurns([])
     setMindmapGenerated(false)
     setMindmapDefinition('')
     setMindmapSvg('')
     setMindmapRevision(0)
+    setSuggestedQuestions([])
+    setSuggestionBatchIndex(0)
+    setSuggestionsLoading(false)
+    suggestionRequestIdRef.current += 1
     setSelectedFile(null)
     setSidebarOpen(false)
   }
@@ -470,6 +598,16 @@ export default function App() {
           </section>
         ) : (
           <section className="conversation">
+            {conversationTurns.map((turn, index) => (
+              <div className="conversation-previous-turn" key={`${index}-${turn.question}`}>
+                <div className="user-message">
+                  <div className="user-bubble">{turn.question}</div>
+                </div>
+                <div className="answer-group previous-answer">
+                  <div className="answer answer-integrated">{turn.answer}</div>
+                </div>
+              </div>
+            ))}
             <div className="user-message">
               <div className="user-bubble">{activeQuestion}</div>
               <div className="user-question-actions">
@@ -477,21 +615,44 @@ export default function App() {
                 <Tooltip title="编辑问题"><Button className="user-question-action" type="text" icon={<EditOutlined />} aria-label="编辑问题" disabled={loading} onClick={editActiveQuestion} /></Tooltip>
               </div>
             </div>
-            <div className="answer answer-integrated">
-              {loading ? '正在生成回答…' : answer}
-              {answer && renderAnswerFooter()}
-            </div>
-            {answer && (
-              <div className="answer-actions answer-actions-outside">
-                <Tooltip title="朗读回答"><Button className="answer-action" type="text" size="small" icon={<SoundOutlined />} aria-label="朗读回答" /></Tooltip>
-                <Tooltip title="复制回答"><Button className="answer-action" type="text" size="small" icon={<CopyOutlined />} aria-label="复制回答" onClick={() => message.success('回答已复制。')} /></Tooltip>
-                <Tooltip title="有帮助"><Button className="answer-action" type="text" size="small" icon={<LikeOutlined />} aria-label="有帮助" /></Tooltip>
-                <Tooltip title="没有帮助"><Button className="answer-action" type="text" size="small" icon={<DislikeOutlined />} aria-label="没有帮助" /></Tooltip>
+            <div className="answer-group" ref={answerGroupRef}>
+              <div className="answer answer-integrated">
+                {loading ? '正在生成回答…' : answer}
               </div>
-            )}
+              {answer && (
+                <>
+                  <div className="answer-actions answer-actions-outside">
+                    <Tooltip title="朗读回答"><Button className="answer-action" type="text" size="small" icon={<SoundOutlined />} aria-label="朗读回答" /></Tooltip>
+                    <Tooltip title="复制回答"><Button className="answer-action" type="text" size="small" icon={<CopyOutlined />} aria-label="复制回答" onClick={() => message.success('回答已复制。')} /></Tooltip>
+                    <Tooltip title="有帮助"><Button className="answer-action" type="text" size="small" icon={<LikeOutlined />} aria-label="有帮助" /></Tooltip>
+                    <Tooltip title="没有帮助"><Button className="answer-action" type="text" size="small" icon={<DislikeOutlined />} aria-label="没有帮助" /></Tooltip>
+                    <span className="answer-completed"><CheckCircleFilled /> 回答完毕</span>
+                  </div>
+                  {renderAnswerFooter()}
+                  <section className="follow-up-panel" aria-labelledby="follow-up-title">
+                    <header className="follow-up-heading">
+                      <div className="follow-up-heading-copy">
+                        <ChatBubbleIcon active />
+                        <h2 id="follow-up-title">你还可以继续问</h2>
+                      </div>
+                      <Button type="text" className="follow-up-refresh" icon={<ReloadOutlined />} loading={suggestionsLoading} onClick={refreshFollowUpQuestions}>
+                        换一批
+                      </Button>
+                    </header>
+                    <div className="follow-up-questions">
+                      {visibleFollowUpQuestions.map((item) => (
+                        <Button className="follow-up-question" key={item} onClick={() => askFollowUpQuestion(item)}>
+                          <span className="follow-up-question-label">{item}</span><ArrowRightOutlined />
+                        </Button>
+                      ))}
+                    </div>
+                  </section>
+                </>
+              )}
+            </div>
           </section>
         )}
-        <form className="composer" onSubmit={(event) => { event.preventDefault(); if (question.trim()) { void ask(question.trim()); setQuestion('') } }}>
+        <form className="composer" onSubmit={(event) => { event.preventDefault(); if (question.trim()) { void ask(question.trim(), Boolean(activeQuestion)); setQuestion('') } }}>
           <Upload beforeUpload={() => false} maxCount={1} showUploadList={false} accept=".pdf,.ppt,.pptx,.doc,.docx,.txt,image/*" onChange={handleUploadChange}>
             <Tooltip title="选择要附加的文件"><Button className="attach-button" type="text" icon={<PaperClipOutlined />} aria-label="选择要附加的文件" /></Tooltip>
           </Upload>
@@ -506,7 +667,7 @@ export default function App() {
             autoSize={{ minRows: 1, maxRows: 5 }}
           />
           <span className="model-label" aria-label="当前模型">{model}</span>
-          <Button type="primary" htmlType="submit" shape="circle" disabled={!question.trim()} icon={<SendOutlined />} aria-label="发送问题" />
+          <Button type="primary" htmlType="submit" shape="circle" disabled={!question.trim() || loading} icon={<SendOutlined />} aria-label="发送问题" />
         </form>
       </main>
 
